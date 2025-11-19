@@ -66,11 +66,11 @@
 
                     <div class="collapse" id="collapseAset" data-bs-parent="#sidenavAccordion">
                         <nav class="sb-sidenav-menu-nested nav">
-                            <a class="nav-link" href="/admin/aset/tambah">Tambah Aset</a>
-                            <a class="nav-link" href="/admin/aset/update">Update Aset</a>
-                            <a class="nav-link" href="/admin/aset/hapus">Hapus Aset</a>
+                            <!-- {{ route('aset.index') }} -->
+                            <a class="nav-link" href="/admin/aset">Kelola Aset</a>
                             <a class="nav-link" href="/admin/aset/laporan">Laporan Aset</a>
                             <a class="nav-link" href="/admin/aset/notifikasi">Notifikasi Aset</a>
+
                         </nav>
                     </div>
 

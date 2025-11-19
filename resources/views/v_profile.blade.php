@@ -1,94 +1,138 @@
 @extends('layouts.v_template')
 
 @section('content')
+<div class="container mt-4">
+    <div class="card shadow mx-auto" style="max-width: 650px;">
 
-<style>
-    .profil-wrapper {
-        max-width: 420px;
-        margin: 40px auto;
-        background: white;
-        border-radius: 18px;
-        padding: 25px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-        border: 1px solid #ddd;
-    }
-
-    .profil-header {
-        background: #0d6efd;
-        color: white;
-        padding: 12px 20px;
-        font-size: 22px;
-        font-weight: bold;
-        border-radius: 12px 12px 0 0;
-        margin: -25px -25px 20px -25px;
-    }
-
-    .profil-image {
-        width: 140px;
-        height: 140px;
-        border-radius: 50%;
-        background: #d7d7d7;
-        margin: 15px auto;
-        display: block;
-    }
-
-    .btn-area {
-        margin-top: 20px;
-        text-align: center;
-        display: flex;
-        justify-content: center;
-        gap: 10px;
-    }
-
-    .btn-save { background: #001f3f; color: white; }
-    .btn-edit { background: #28a745; color: white; }
-    .btn-cancel { background: #dc3545; color: white; }
-</style>
-
-<div class="container d-flex justify-content-center align-items-start mt-5">
-    <div class="card shadow" style="width: 500px; border-radius: 15px;">
-        
-        <div class="card-header text-white" style="background:#007bff; border-top-left-radius:15px; border-top-right-radius:15px;">
-            <h4>Profil</h4>
+        <div class="card-header bg-primary text-white d-flex justify-content-between">
+            <h4 class="m-0">Profil Pengguna</h4>
+            <button class="btn btn-light btn-sm" data-bs-toggle="modal" data-bs-target="#editModal">
+                <i class="fas fa-edit"></i> Edit
+            </button>
         </div>
 
-        <form action="{{ route('profile.update') }}" method="POST">
-    @csrf
+        <div class="card-body text-center">
+            <img src="https://cdn-icons-png.flaticon.com/512/847/847969.png"
+            width="120" class="rounded-circle shadow-sm mb-3">
 
+            <h5 class="fw-bold">{{ $profile->nama ?? '-' }}</h5>
+            <p class="text-muted">{{ $user->role ?? '-' }}</p>
 
-            <div class="mb-3">
-                <label class="form-label">Nama</label>
-                <input type="text" class="form-control" 
-                        name="nama" value="{{ $user->nama ?? '' }}" placeholder="Masukkan nama">
+            <hr>
 
-            <div class="mb-3">
-                <label class="form-label">NIM</label>
-                <input type="text" class="form-control" 
-                        name="nim" value="{{ $user->nim ?? '' }}" placeholder="Masukkan NIM">
+            <div class="text-start px-2">
+                <p><strong>Username:</strong> {{ $user->username }}</p>
+
+                {{-- Mahasiswa --}}
+                @if($user->role === 'Mahasiswa')
+                    <p><strong>NIM:</strong> {{ $profile->nim ?? '-' }}</p>
+                    <p><strong>Kelas:</strong> {{ $profile->kelas ?? '-' }}</p>
+                @endif
+
+                {{-- Dosen --}}
+                @if($user->role === 'Dosen')
+                    <p><strong>NIDN:</strong> {{ $profile->nidn ?? '-' }}</p>
+                    <p><strong>Prodi:</strong> {{ $profile->prodi ?? '-' }}</p>
+                @endif
+
+                {{-- Teknisi --}}
+                @if($user->role === 'Teknisi')
+                    <p><strong>Bidang:</strong> {{ $profile->bidang ?? '-' }}</p>
+                @endif
+
+                {{-- Admin --}}
+                @if($user->role === 'Admin')
+                    <p><strong>Jabatan:</strong> {{ $profile->jabatan ?? '-' }}</p>
+                @endif
             </div>
-
-            <div class="mb-3">
-                <label class="form-label">Kelas</label>
-                <input type="text" class="form-control" 
-       name="kelas" value="{{ $user->kelas ?? '' }}" placeholder="Masukkan kelas">
-            </div>
-
-            <div class="text-center my-3">
-                <img src="https://cdn-icons-png.flaticon.com/512/847/847969.png"
-                     width="120" class="img-fluid">
-            </div>
-
-            <div class="text-center">
-                <button class="btn btn-dark mx-1">Save</button>
-                <button class="btn btn-success mx-1">Edit</button>
-                <button class="btn btn-danger mx-1">Cancel</button>
-            </div>
-
-        </form>
-
-
+        </div>
     </div>
 </div>
 
 
+{{-- Modal Edit --}}
+<div class="modal fade" id="editModal">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+
+            <form action="{{ route('profile.update') }}" method="POST">
+                @csrf
+
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title">Edit Profil</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body">
+
+                    {{-- Nama --}}
+                    <div class="mb-3">
+                        <label class="form-label">Nama</label>
+                        <input name="nama" class="form-control"
+                        value="{{ old('nama', $profile->nama ?? '') }}" required>
+                    </div>
+
+                    {{-- Mahasiswa --}}
+                    @if($user->role === 'Mahasiswa')
+                        <div class="mb-3">
+                            <label class="form-label">NIM</label>
+                            <input name="nim" class="form-control"
+                            value="{{ old('nim', $profile->nim ?? '') }}" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Kelas</label>
+                            <input name="kelas" class="form-control"
+                            value="{{ old('kelas', $profile->kelas ?? '') }}" required>
+                        </div>
+                    @endif
+
+                    {{-- Dosen --}}
+                    @if($user->role === 'Dosen')
+                        <div class="mb-3">
+                            <label class="form-label">NIDN</label>
+                            <input name="nidn" class="form-control"
+                            value="{{ old('nidn', $profile->nidn ?? '') }}" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Prodi</label>
+                            <input name="prodi" class="form-control"
+                            value="{{ old('prodi', $profile->prodi ?? '') }}" required>
+                        </div>
+                    @endif
+
+                    {{-- Teknisi --}}
+                    @if($user->role === 'Teknisi')
+                        <div class="mb-3">
+                            <label class="form-label">Bidang</label>
+                            <input name="bidang" class="form-control"
+                            value="{{ old('bidang', $profile->bidang ?? '') }}" required>
+                        </div>
+                    @endif
+
+                    {{-- Admin --}}
+                    @if($user->role === 'Admin')
+                        <div class="mb-3">
+                            <label class="form-label">Jabatan</label>
+                            <input name="jabatan" class="form-control"
+                            value="{{ old('jabatan', $profile->jabatan ?? '') }}" required>
+                        </div>
+                    @endif
+
+                </div>
+
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button class="btn btn-primary">Simpan</button>
+                </div>
+
+            </form>
+        </div>
+    </div>
+</div>
+
+@if(session('success'))
+<script>alert('{{ session('success') }}');</script>
+@endif
 @endsection

@@ -104,23 +104,28 @@
         position: relative;
         }
 
-        .toggle-password {
-        position: absolute;
-        right: 15px;
-        top: 38px;
-        cursor: pointer;
-        color: #888;
-        }
+       /* Pastikan div induk memiliki posisi relatif */
+.form-group {
+    position: relative;
+    /* Tambahan styling lain jika diperlukan */
+}
 
-        .toggle-password:hover {
-        color: #000;
-        }
+/* Styling untuk container ikon */
+.toggle-password {
+    position: absolute;
+    top: 50%; /* Sesuaikan agar ikon berada di tengah vertikal */
+    right: 10px; /* Jarak dari sisi kanan input */
+    transform: translateY(-50%); /* Menyesuaikan posisi tengah vertikal yang lebih akurat */
+    cursor: pointer;
+    z-index: 100; /* Pastikan ikon di atas elemen lain */
+}
 
         @media (max-width: 768px) {
             .login-container { flex-direction: column; padding: 30px; }
             .logo { top: 10px; right: 10px; width: 50px; height: 50px; }
         }
     </style>
+    
 </head>
 <body>
 

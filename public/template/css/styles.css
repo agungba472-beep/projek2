@@ -483,7 +483,21 @@ legend + * {
   outline-offset: -2px;
   -webkit-appearance: textfield;
 }
+/* Pastikan div induk memiliki posisi relatif */
+.form-group {
+    position: relative;
+    /* Tambahan styling lain jika diperlukan */
+}
 
+/* Styling untuk container ikon */
+.toggle-password {
+    position: absolute;
+    top: 50%; /* Sesuaikan agar ikon berada di tengah vertikal */
+    right: 10px; /* Jarak dari sisi kanan input */
+    transform: translateY(-50%); /* Menyesuaikan posisi tengah vertikal yang lebih akurat */
+    cursor: pointer;
+    z-index: 100; /* Pastikan ikon di atas elemen lain */
+}
 /* rtl:raw:
 [type="tel"],
 [type="url"],
