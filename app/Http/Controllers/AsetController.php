@@ -39,7 +39,7 @@ class AsetController extends Controller
             'tanggal_peroleh' => $request->tanggal_peroleh,
             'umur_maksimal' => $request->umur_maksimal,
             'tanggal_input' => now(),
-            'laporan_id' => null
+
         ]);
 
         return redirect()

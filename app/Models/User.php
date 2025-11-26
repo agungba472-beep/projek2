@@ -26,12 +26,14 @@ class User extends Authenticatable
     protected $keyType = 'int';
 
     // jika tabel punya created_at, kalau tidak ada set false
-    public $timestamps = true; // ubah ke false jika tidak punya created_at / updated_at
-
+    public $timestamps = false; // ubah ke false jika tidak punya created_at / updated_at
+    protected $guarded = [];
     protected $fillable = [
         'username',
         'password',
         'role',
+        'status',
+        'last_seen'
     ];
 
     protected $hidden = [
@@ -44,6 +46,12 @@ class User extends Authenticatable
     {
         return [
             'created_at' => 'datetime',
+            'last_seen' => 'datetime',
         ];
     }
+    public function maintenance()
+{
+    return $this->hasMany(Maintenance::class, 'teknisi_id', 'user_id');
+}
+
 }

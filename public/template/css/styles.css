@@ -11295,3 +11295,14 @@ body {
   font-size: 0.75rem;
   border-radius: 0.375rem !important;
 }
+
+/* Fix konten agar full width */
+#layoutSidenav_content {
+    width: 100%;
+}
+
+#layoutSidenav_content main {
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 1.5rem; /* biar tetap ada jarak */
+}

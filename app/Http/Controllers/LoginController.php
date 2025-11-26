@@ -12,37 +12,49 @@ class LoginController extends Controller
         return view('v_login');
     }
 
-    public function proses(Request $request)
-    {
-        $credentials = $request->validate([
-            'username' => 'required',
-            'password' => 'required'
+   public function proses(Request $request)
+{
+    $credentials = $request->validate([
+        'username' => 'required',
+        'password' => 'required'
+    ]);
+
+    if (Auth::attempt($credentials)) {
+
+        $request->session()->regenerate();
+
+        // 🔥 Update status online + last_seen
+        auth()->user()->update([
+            'status'     => 'aktif',
+            'last_seen'  => now(),
         ]);
 
-        if (Auth::attempt($credentials)) {
+        $role = auth()->user()->role;
 
-            $request->session()->regenerate();
-
-            $role = auth()->user()->role;
-
-            return match ($role) {
-                'Admin' => redirect('/admin/dashboard'),
-                'Mahasiswa' => redirect('/mahasiswa/dashboard'),
-                'Dosen' => redirect('/dosen/dashboard'),
-                'Teknisi' => redirect('/teknisi/dashboard'),
-                default => redirect('/')
-            };
-        }
-
-        return back()->with('error', 'Username atau Password salah.');
+        return match ($role) {
+            'Admin'     => redirect('/admin/dashboard'),
+            'Mahasiswa' => redirect('/mahasiswa/dashboard'),
+            'Dosen'     => redirect('/dosen/dashboard'),
+            'Teknisi'   => redirect('/teknisi/dashboard'),
+            default     => redirect('/')
+        };
     }
 
-    public function logout(Request $request)
-    {
-        Auth::logout();
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
+    return back()->with('error', 'Username atau Password salah.');
+}
 
-        return redirect('/');
-    }
+public function logout(Request $request)
+{
+    // 🔥 Update offline
+    auth()->user()->update([
+        'status'     => 'nonaktif',
+        'last_seen'  => now(),
+    ]);
+
+    Auth::logout();
+    $request->session()->invalidate();
+    $request->session()->regenerateToken();
+
+    return redirect('/login');
+}
 }

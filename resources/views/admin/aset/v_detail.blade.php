@@ -3,66 +3,85 @@
 @section('content')
 <div class="container mt-4">
 
+    <a href="{{ url('/admin/aset/laporan') }}" class="btn btn-secondary btn-sm mb-3">
+        ← Kembali
+    </a>
+
     <h3 class="mb-3">Detail Laporan Aset</h3>
 
-    <div class="card mb-4">
-        <div class="card-header">
-            <strong>Informasi Aset</strong>
-        </div>
+    <div class="card shadow-sm mb-4">
         <div class="card-body">
-            <p><strong>Nama:</strong> {{ $aset->nama }}</p>
-            <p><strong>Jenis:</strong> {{ $aset->jenis }}</p>
-            <p><strong>Tanggal Peroleh:</strong> {{ $aset->tanggal_peroleh ?? '-' }}</p>
-            <p><strong>Umur Maksimal:</strong> {{ $aset->umur_maksimal ? $aset->umur_maksimal.' Tahun' : '-' }}</p>
-        </div>
-    </div>
 
-    <div class="card">
-        <div class="card-header">
-            <strong>Pemutihan Aset</strong>
-        </div>
-
-        <div class="card-body">
-            @if ($pemutihan)
-            <table class="table table-bordered">
+            <h5>Informasi Aset</h5>
+            <table class="table table-sm">
                 <tr>
                     <th>Nama Aset</th>
-                    <td>{{ $pemutihan['nama'] }}</td>
+                    <td>{{ $aset->nama }}</td>
                 </tr>
                 <tr>
                     <th>Jenis</th>
-                    <td>{{ $pemutihan['jenis'] }}</td>
+                    <td>{{ $aset->jenis }}</td>
                 </tr>
                 <tr>
                     <th>Tanggal Peroleh</th>
-                    <td>{{ $pemutihan['tanggal_peroleh'] }}</td>
+                    <td>{{ $aset->tanggal_peroleh }}</td>
                 </tr>
                 <tr>
                     <th>Umur Maksimal</th>
-                    <td>{{ $pemutihan['umur_maksimal'] }} Tahun</td>
+                    <td>{{ $aset->umur_maksimal }} tahun</td>
                 </tr>
                 <tr>
-                    <th>Tanggal Kadaluarsa</th>
-                    <td>{{ $pemutihan['tanggal_kadaluarsa'] }}</td>
-                </tr>
-                <tr class="table-danger">
-                    <th>Status</th>
-                    <td><strong>Aset Harus Dimutihkan</strong></td>
+                    <th>Kondisi</th>
+                    <td>{{ $aset->kondisi }}</td>
                 </tr>
             </table>
-
-            @else
-            <p class="text-success"><strong>Tidak ada pemutihan untuk aset ini 🎉</strong></p>
-            @endif
         </div>
     </div>
+{{-- STATUS PEMUTIHAN --}}
+<div class="card shadow-sm">
+    <div class="card-body">
 
-    {{-- Tombol Download --}}
-   <div class="d-flex justify-content-end">
-    <a href="/admin/laporan" class="btn btn-secondary me-2">Kembali</a>
-    <a href="{{ route('laporan.inventaris.excel', $aset->aset_id) }}" class="btn btn-success">
-        Download Excel
-    </a>
+        <h5>Status Pemutihan</h5>
+
+        {{-- Jika sudah pernah dipemutihkan --}}
+        @if ($pemutihan['data_laporan'])
+            <div class="alert alert-info">
+                <strong>Aset ini sudah dipemutihkan sebelumnya.</strong> <br>
+                Tanggal: {{ $pemutihan['data_laporan']->tanggal_pemutihan }} <br>
+                Catatan: {{ $pemutihan['data_laporan']->catatan }}
+            </div>
+
+        {{-- Jika perlu pemutihan --}}
+        @elseif ($pemutihan['perlu_pemutihan'])
+            <div class="alert alert-danger">
+                <strong>Perlu Pemutihan:</strong> {{ $pemutihan['alasan'] }}
+            </div>
+
+            {{-- Tombol Simpan Laporan --}}
+            <form action="{{ route('laporan.storePemutihan', $aset->aset_id) }}" method="POST">
+                @csrf
+                <input type="hidden" name="tanggal" value="{{ date('Y-m-d') }}">
+                <input type="hidden" name="catatan" value="{{ $pemutihan['alasan'] }}">
+                <button class="btn btn-primary">Simpan Pemutihan</button>
+            </form>
+
+        {{-- Jika tidak perlu --}}
+        @else
+            <div class="alert alert-success">
+                <strong>Tidak Perlu Pemutihan:</strong> {{ $pemutihan['alasan'] }}
+            </div>
+        @endif
+
+        <a href="{{ route('laporan.inventaris.export', $aset->aset_id) }}" 
+            class="btn btn-success mt-2">
+            Export Excel
+        </a>
+
+    </div>
+</div>
+
+
+        </div>
     </div>
 
 </div>

@@ -20,6 +20,11 @@
                         <th>Lokasi</th>
                         <th>Kondisi</th>
                         <th>Status</th>
+
+                        {{-- Kolom baru --}}
+                        <th>Maintenance Terakhir</th>
+                        <th>Kartu Kontrol</th>
+
                         <th>Aksi</th>
                     </tr>
                 </thead>
@@ -33,20 +38,36 @@
                         <td>{{ $row->lokasi }}</td>
                         <td>{{ $row->kondisi }}</td>
                         <td>{{ $row->status }}</td>
-                        <td>
 
+                        {{-- maintenance terakhir --}}
+                        <td>
+                            @if($row->maintenance_terakhir)
+                                {{ \Carbon\Carbon::parse($row->maintenance_terakhir->tanggal_dijadwalkan)->format('d M Y') }}
+                            @else
+                                <span class="text-muted">Belum ada</span>
+                            @endif
+                        </td>
+
+                        {{-- tombol ke maintenance --}}
+                        <td>
+                            <a href="{{ route('maintenance.listAset', $row->aset_id) }}" 
+                               class="btn btn-info btn-sm">
+                                Lihat
+                            </a>
+                        </td>
+
+                        <td>
                             <a href="{{ route('aset.edit', $row->aset_id) }}" class="btn btn-warning btn-sm">
                                 Edit
                             </a>
 
-                           <form action="{{ route('aset.delete', $row->aset_id) }}" method="POST" class="d-inline">
-                            @csrf
-                            @method('DELETE')
-                            <button class="btn btn-danger btn-sm" onclick="return confirm('Yakin dihapus?')">
-                                Delete
-                            </button>
-                        </form>
-
+                            <form action="{{ route('aset.delete', $row->aset_id) }}" method="POST" class="d-inline">
+                                @csrf
+                                @method('DELETE')
+                                <button class="btn btn-danger btn-sm" onclick="return confirm('Yakin dihapus?')">
+                                    Delete
+                                </button>
+                            </form>
                         </td>
                     </tr>
                     @endforeach

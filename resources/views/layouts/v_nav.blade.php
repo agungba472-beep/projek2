@@ -47,11 +47,10 @@
 
                     <div class="collapse" id="collapseFasilitas" data-bs-parent="#sidenavAccordion">
                         <nav class="sb-sidenav-menu-nested nav">
-                            <a class="nav-link" href="/admin/fasilitas/pengajuan">Daftar Pengajuan</a>
-                            <a class="nav-link" href="/admin/fasilitas/kartu-kontrol">Kartu Kontrol & Kunci</a>
+                            <a class="nav-link" href="/admin/pengajuan">Daftar Pengajuan</a>
                             <a class="nav-link" href="/admin/fasilitas/laporan-kerusakan">Laporan Kerusakan Fasilitas</a>
-                            <a class="nav-link" href="/admin/fasilitas/teknisi">Kelola Teknisi</a>
-                            <a class="nav-link" href="/admin/fasilitas/notifikasi">Notifikasi Fasilitas</a>
+                            <!-- <a class="nav-link" href="/admin/fasilitas/teknisi">Kelola Teknisi</a>
+                            <a class="nav-link" href="/admin/fasilitas/notifikasi">Notifikasi Fasilitas</a> -->
                         </nav>
                     </div>
 
@@ -69,7 +68,8 @@
                             <!-- {{ route('aset.index') }} -->
                             <a class="nav-link" href="/admin/aset">Kelola Aset</a>
                             <a class="nav-link" href="/admin/aset/laporan">Laporan Aset</a>
-                            <a class="nav-link" href="/admin/aset/notifikasi">Notifikasi Aset</a>
+                            <a class="nav-link" href="{{ route('notifikasi.aset') }}">Notifikasi Aset</a>
+
 
                         </nav>
                     </div>
@@ -85,9 +85,9 @@
 
                     <div class="collapse" id="collapseManajemen" data-bs-parent="#sidenavAccordion">
                         <nav class="sb-sidenav-menu-nested nav">
-                            <a class="nav-link" href="/admin/user/kelola">Kelola Pengguna</a>
-                            <a class="nav-link" href="/admin/admin/riwayat">Riwayat Aktivitas Admin</a>
-                            <a class="nav-link" href="/admin/profil">Profil Admin</a>
+                            <a class="nav-link" href="/admin/manajemen/kelola">Kelola Pengguna</a>
+                            <!-- <a class="nav-link" href="/admin/admin/riwayat">Riwayat Aktivitas Admin</a>
+                            <a class="nav-link" href="/admin/profil">Profil Admin</a> -->
                         </nav>
                     </div>
 
@@ -96,7 +96,7 @@
 
                 {{-- TEKNISI --}}
                 @if($role === 'Teknisi')
-                    <a class="nav-link" href="/teknisi/tugas">
+                    <!-- <a class="nav-link" href="/teknisi/tugas">
                         <div class="sb-nav-link-icon"><i class="fas fa-cogs"></i> </div>
                         Detail Tugas Perbaikan
                     </a>
@@ -110,23 +110,50 @@
                         </div>
                         Notifikasi Teknisi
                     </a>
+                     -->
+                    <a class="nav-link" href="/teknisi/maintenance">
+                        <div class="sb-nav-link-icon"><i class="fas fa-tools"></i>
+                        </div>
+                        Maintenance
+                    </a>
+
 
                 @endif
 
                 {{-- MAHASISWA --}}
                 @if($role === 'Mahasiswa')
-                    <a class="nav-link" href="/mahasiswa/peminjaman">
+                    <a class="nav-link collapsed" href="#" data-bs-toggle="collapse" data-bs-target="#collapseManajemen"
+                        aria-expanded="false" aria-controls="collapseManajemen">
                         <div class="sb-nav-link-icon"><i class="fas fa-key"></i></div>
                         Peminjaman
+                        <div class="sb-sidenav-collapse-arrow"><i class="fas fa-angle-down"></i></div>
                     </a>
+
+                    <div class="collapse" id="collapseManajemen" data-bs-parent="#sidenavAccordion">
+                        <nav class="sb-sidenav-menu-nested nav">
+                            <a class="nav-link" href="/mahasiswa/peminjaman/ruangan">Peminjaman Ruangan</a>
+                            <a class="nav-link" href="/mahasiswa/peminjaman/fasilitas">Peminjaman Fasilitas</a>
+                            <a class="nav-link" href="/mahasiswa/peminjaman/komplain">Komplain</a>
+                        </nav>
+                    </div>
                 @endif
 
                 {{-- DOSEN --}}
                 @if($role === 'Dosen')
-                    <a class="nav-link" href="/dosen/laporan">
-                        <div class="sb-nav-link-icon"><i class="fas fa-file-alt"></i></div>
+                    <a class="nav-link collapsed" href="#" data-bs-toggle="collapse" data-bs-target="#collapseManajemen"
+                        aria-expanded="false" aria-controls="collapseManajemen">
+                        <div class="sb-nav-link-icon"><i class="fas fa-key"></i></div>
                         Peminjaman
+                        <div class="sb-sidenav-collapse-arrow"><i class="fas fa-angle-down"></i></div>
                     </a>
+
+                    <div class="collapse" id="collapseManajemen" data-bs-parent="#sidenavAccordion">
+                        <nav class="sb-sidenav-menu-nested nav">
+                            <a class="nav-link" href="/dosen/peminjaman/ruangan">Peminjaman Ruangan</a>
+                            <a class="nav-link" href="/dosen/peminjaman/fasilitas">Peminjaman Fasilitas</a>
+                            <a class="nav-link" href="/dosen/peminjaman/komplain">Komplain</a>
+                        </nav>
+                    </div>
                 @endif
             </div>
         </div>
@@ -138,5 +165,3 @@
         </div>
     </nav>
 </div>
-
-<div id="layoutSidenav_content">

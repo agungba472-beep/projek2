@@ -3,95 +3,87 @@
 namespace App\Exports;
 
 use App\Models\Aset;
-use App\Models\LaporanInventaris;
+use Illuminate\Contracts\View\View;
 use Maatwebsite\Excel\Concerns\FromArray;
-use Maatwebsite\Excel\Concerns\WithStyles;
-use Maatwebsite\Excel\Concerns\WithColumnWidths;
 use Maatwebsite\Excel\Concerns\WithHeadings;
+use Maatwebsite\Excel\Concerns\WithStyles;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
-class LaporanInventarisExport implements FromArray, WithStyles, WithColumnWidths, WithHeadings
+class LaporanInventarisExport implements FromArray, WithHeadings, WithStyles
 {
     protected $id;
 
-    public function __construct($id)
+    public function __construct($aset_id)
     {
-        $this->id = $id;
+        $this->id = $aset_id;
     }
 
-    public function headings(): array
-    {
-        return [
-            ['Laporan Inventaris Aset'],      // Judul
-            [],                               // Spasi
-            ['Informasi Aset'],               // Subjudul
-            ['Nama Aset', 'Jenis', 'Tanggal Peroleh', 'Umur Maksimal (Tahun)'],
-        ];
-    }
-
+    /**
+     * Data utama untuk dimasukkan ke Excel
+     */
     public function array(): array
     {
         $aset = Aset::findOrFail($this->id);
-        $pemutihan = LaporanInventaris::cekPemutihan($aset);
 
-        $data = [
+        // Ambil hasil pemutihan dari model Aset
+        $pemutihan = $aset->cekPemutihan();
+
+        return [
             [
                 $aset->nama,
                 $aset->jenis,
-                $aset->tanggal_peroleh ?? '-',
-                $aset->umur_maksimal ?? '-',
-            ],
-            [], // spasi
-            ['Informasi Pemutihan'],
+                $aset->tanggal_peroleh,
+                $aset->umur_maksimal,
+                $pemutihan['tanggal_kadaluarsa'] ?? '-',
+                $aset->kondisi,
+                $pemutihan['status'] ?? '-',
+                $pemutihan['pesan'] ?? '-',
+            ]
         ];
-
-        // Jika masuk pemutihan
-        if ($pemutihan) {
-            $data[] = ['Tanggal Kadaluarsa', $pemutihan['tanggal_kadaluarsa']];
-            $data[] = ['Status', 'Aset Melewati Umur Maksimal'];
-        } else {
-            $data[] = ['Status', 'Aset Belum Memasuki Masa Pemutihan'];
-        }
-
-        return $data;
     }
 
-    public function styles(Worksheet $sheet)
-    {
-        // Judul (A1)
-        $sheet->mergeCells('A1:D1');
-        $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(16);
-        $sheet->getStyle('A1')->getAlignment()->setHorizontal('center');
-
-        // Subjudul Informasi Aset
-        $sheet->mergeCells('A3:D3');
-        $sheet->getStyle('A3')->getFont()->setBold(true)->setSize(12);
-        $sheet->getStyle('A3')->getAlignment()->setHorizontal('left');
-
-        // Header table aset
-        $sheet->getStyle('A4:D4')->getFont()->setBold(true);
-        $sheet->getStyle('A4:D4')->getAlignment()->setHorizontal('center');
-        $sheet->getStyle('A4:D4')->getBorders()->getAllBorders()->setBorderStyle('thin');
-
-        // Data aset
-        $sheet->getStyle('A5:D5')->getBorders()->getAllBorders()->setBorderStyle('thin');
-
-        // Subjudul Pemutihan
-        $sheet->getStyle('A7')->getFont()->setBold(true);
-
-        // Border area pemutihan (A8:B9)
-        $sheet->getStyle('A8:B12')->getBorders()->getAllBorders()->setBorderStyle('thin');
-
-        return [];
-    }
-
-    public function columnWidths(): array
+    /**
+     * Header kolom Excel
+     */
+    public function headings(): array
     {
         return [
-            'A' => 25,
-            'B' => 25,
-            'C' => 25,
-            'D' => 25,
+            'Nama Aset',
+            'Jenis',
+            'Tgl Peroleh',
+            'Umur Maks (th)',
+            'Tgl Kadaluarsa',
+            'Kondisi',
+            'Status',
+            'Catatan',
         ];
+    }
+
+    /**
+     * Styling Excel supaya rapi
+     */
+    public function styles(Worksheet $sheet)
+    {
+        // Header bold
+        $sheet->getStyle('A1:H1')->getFont()->setBold(true);
+
+        // Wrap text untuk isi
+        $sheet->getStyle('A1:H100')->getAlignment()->setWrapText(true);
+
+        // Auto width tiap kolom
+        foreach (range('A', 'H') as $col) {
+            $sheet->getColumnDimension($col)->setAutoSize(true);
+        }
+
+        // Border tipis biar rapi
+        $sheet->getStyle('A1:H100')->applyFromArray([
+            'borders' => [
+                'allBorders' => [
+                    'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                ]
+            ]
+        ]);
+
+        return [];
     }
 }
