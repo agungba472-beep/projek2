@@ -4,7 +4,7 @@
 
 <h3>Komplain Fasilitas / Ruangan</h3>
 
-<form action="{{ route('komplain.store') }}" method="POST">
+<form action="{{ route('dosen.komplain.store') }}" method="POST">
     @csrf
     <div class="mb-3">
         <label>Kategori</label>
@@ -24,7 +24,7 @@
 
 <hr>
 
-<h4>Riwayat Komplain</h4>
+<h4>Riwayat Komplain Saya</h4>
 <table class="table table-bordered">
     <tr>
         <th>No</th>

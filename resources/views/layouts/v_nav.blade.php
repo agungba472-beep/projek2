@@ -47,10 +47,9 @@
 
                     <div class="collapse" id="collapseFasilitas" data-bs-parent="#sidenavAccordion">
                         <nav class="sb-sidenav-menu-nested nav">
-                            <a class="nav-link" href="/admin/pengajuan">Daftar Pengajuan</a>
-                            <a class="nav-link" href="/admin/fasilitas/laporan-kerusakan">Laporan Kerusakan Fasilitas</a>
-                            <!-- <a class="nav-link" href="/admin/fasilitas/teknisi">Kelola Teknisi</a>
-                            <a class="nav-link" href="/admin/fasilitas/notifikasi">Notifikasi Fasilitas</a> -->
+                            <a class="nav-link" href="/admin/pengajuan">Daftar peminjaman</a>
+                            <a class="nav-link" href="{{ route('admin.komplain.index') }}">Laporan Kerusakan Fasilitas</a>
+                            <a class="nav-link" href="{{ route('admin.komplain.riwayat') }}">riwayat kerusakan</a>
                         </nav>
                     </div>
 
@@ -115,6 +114,11 @@
                         <div class="sb-nav-link-icon"><i class="fas fa-tools"></i>
                         </div>
                         Maintenance
+                    </a>
+                    <a class="nav-link" href="{{ route('teknisi.komplain.index') }}">
+                        <div class="sb-nav-link-icon"><i class="fas fa-tools"></i>
+                        </div>
+                        Perbaikan Komplain
                     </a>
 
 

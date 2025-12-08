@@ -8,10 +8,12 @@
 <style>
     .card-dashboard {
         border-radius: 0.75rem;
-        transition: transform 0.2s;
+        transition: transform 0.2s, box-shadow 0.2s;
+        min-height: 100px; /* Memastikan tinggi minimum agar terlihat seragam */
     }
     .card-dashboard:hover {
         transform: translateY(-3px);
+        box-shadow: 0 10px 20px rgba(0,0,0,.15); /* Bayangan yang lebih kuat saat hover */
     }
     .status-online { color: green; }
     .status-offline { color: red; }
@@ -23,95 +25,145 @@
     
     <hr>
     
-    {{-- A. RINGKASAN (CARD STATS) --}}
-<div class="row mb-4">
-    
-    {{-- Total Aset -> Mengarah ke Halaman Kelola Aset (aset.index) --}}
-    <div class="col-xl-3 col-md-6 mb-4">
-        {{-- Bungkus card dengan tag <a> yang mengarah ke route aset.index --}}
-        <a href="{{ route('aset.index') }}" style="text-decoration: none;"> 
-            <div class="card bg-info text-white shadow card-dashboard">
-                <div class="card-body">
-                    <div class="row align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-uppercase mb-1">Total Aset</div>
-                            <div class="h5 mb-0 font-weight-bold">{{ $stats['totalAset'] }}</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-boxes fa-2x"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </a>
-    </div>
-    
-    {{-- Total Pengguna -> Mengarah ke Halaman Kelola Pengguna (pengguna.index) --}}
-    <div class="col-xl-3 col-md-6 mb-4">
-        {{-- Mengasumsikan ada route 'pengguna.index' --}}
-        <a href="{{ route('pengguna.index') }}" style="text-decoration: none;"> 
-            <div class="card bg-success text-white shadow card-dashboard">
-                <div class="card-body">
-                    <div class="row align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-uppercase mb-1">Total Pengguna</div>
-                            <div class="h5 mb-0 font-weight-bold">{{ $stats['totalPengguna'] }}</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-users fa-2x"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </a>
-    </div>
-    
-    {{-- Pengajuan Menunggu -> Mengarah ke Halaman Konfirmasi Pengajuan (admin.pengajuan.index) --}}
-    <div class="col-xl-3 col-md-6 mb-4">
-        {{-- Mengarah ke route konfirmasi pengajuan yang baru kita buat --}}
-        <a href="{{ route('admin.pengajuan.index') }}" style="text-decoration: none;"> 
-            <div class="card bg-warning text-dark shadow card-dashboard">
-                <div class="card-body">
-                    <div class="row align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-uppercase mb-1">Pengajuan Menunggu</div>
-                            <div class="h5 mb-0 font-weight-bold">{{ $stats['pengajuanMenunggu'] }}</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-clock fa-2x"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </a>
-    </div>
-    
-    {{-- Maintenance Terjadwal -> Mengarah ke Halaman Maintenance (maintenance.index) --}}
-    <div class="col-xl-3 col-md-6 mb-4">
-        {{-- Mengasumsikan ada route 'maintenance.index' --}}
-        <a href="{{ route('maintenance.index') }}" style="text-decoration: none;">
-            <div class="card bg-danger text-white shadow card-dashboard">
-                <div class="card-body">
-                    <div class="row align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-uppercase mb-1">Maintenance Terjadwal</div>
-                            <div class="h5 mb-0 font-weight-bold">{{ $stats['maintenanceTerjadwal'] }}</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-wrench fa-2x"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </a>
-    </div>
-</div>
-<hr>
-    {{-- B & E. VISUALISASI GRAFIK (ASET & MAINTENANCE) --}}
+    {{-- A. RINGKASAN KRITIS (5 STATS CARD) --}}
     <div class="row mb-4">
         
-        {{-- B. GRAFIK ASET BERDASARKAN KONDISI --}}
+        {{-- Total Aset --}}
+        <div class="col-xl-3 col-md-6 mb-4">
+            <a href="{{ route('aset.index') }}" style="text-decoration: none;"> 
+                <div class="card bg-info text-white shadow card-dashboard">
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col mr-2">
+                                <div class="text-xs font-weight-bold text-uppercase mb-1">Total Aset</div>
+                                <div class="h5 mb-0 font-weight-bold">{{ $stats['totalAset'] }}</div>
+                            </div>
+                            <div class="col-auto"><i class="fas fa-boxes fa-2x"></i></div>
+                        </div>
+                    </div>
+                </div>
+            </a>
+        </div>
+        
+        {{-- Total Pengguna --}}
+        <div class="col-xl-3 col-md-6 mb-4">
+            <a href="{{ route('pengguna.index') }}" style="text-decoration: none;"> 
+                <div class="card bg-success text-white shadow card-dashboard">
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col mr-2">
+                                <div class="text-xs font-weight-bold text-uppercase mb-1">Total Pengguna</div>
+                                <div class="h5 mb-0 font-weight-bold">{{ $stats['totalPengguna'] }}</div>
+                            </div>
+                            <div class="col-auto"><i class="fas fa-users fa-2x"></i></div>
+                        </div>
+                    </div>
+                </div>
+            </a>
+        </div>
+        
+        {{-- Peminjaman Menunggu (ACTION REQUIRED) --}}
+        <div class="col-xl-3 col-md-6 mb-4">
+            <a href="{{ route('admin.pengajuan.index') }}" style="text-decoration: none;"> 
+                <div class="card bg-warning text-dark shadow card-dashboard">
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col mr-2">
+                                <div class="text-xs font-weight-bold text-uppercase mb-1">Peminjaman Menunggu</div>
+                                <div class="h5 mb-0 font-weight-bold">{{ $stats['pengajuanMenunggu'] }}</div>
+                            </div>
+                            <div class="col-auto"><i class="fas fa-clock fa-2x"></i></div>
+                        </div>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        {{-- NEW CARD: Total Komplain --}}
+        <div class="col-xl-3 col-md-6 mb-4">
+            {{-- Mengarah ke halaman Riwayat Komplain Admin --}}
+            <a href="{{ route('admin.komplain.riwayat') }}" style="text-decoration: none;"> 
+                <div class="card bg-secondary text-white shadow card-dashboard">
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col mr-2">
+                                <div class="text-xs font-weight-bold text-uppercase mb-1">Total Riwayat Komplain</div>
+                                <div class="h5 mb-0 font-weight-bold">{{ $stats['totalKomplain'] }}</div>
+                            </div>
+                            <div class="col-auto"><i class="fas fa-history fa-2x"></i></div>
+                        </div>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+    </div>
+    
+    {{-- BARIS 2: METRIK KRITIS (Komplain Aktif & Maintenance Terjadwal) --}}
+    <div class="row mb-4">
+        
+        {{-- NEW CARD: Komplain Aktif (ACTION REQUIRED) --}}
         <div class="col-xl-6 col-lg-6 mb-4">
+            {{-- Mengarah ke halaman komplain aktif yang perlu ditangani --}}
+            <a href="{{ route('admin.komplain.riwayat', ['status' => 'aktif']) }}" style="text-decoration: none;"> 
+                <div class="card bg-primary text-white shadow card-dashboard">
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col mr-2">
+                                <div class="text-xs font-weight-bold text-uppercase mb-1">Komplain Aktif & Belum Selesai</div>
+                                <div class="h3 mb-0 font-weight-bold">{{ $stats['komplainAktif'] }}</div>
+                            </div>
+                            <div class="col-auto"><i class="fas fa-headset fa-3x"></i></div>
+                        </div>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        {{-- Maintenance Terjadwal --}}
+        <div class="col-xl-6 col-lg-6 mb-4">
+            <a href="{{ route('maintenance.index') }}" style="text-decoration: none;">
+                <div class="card bg-danger text-white shadow card-dashboard">
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col mr-2">
+                                <div class="text-xs font-weight-bold text-uppercase mb-1">Maintenance Terjadwal</div>
+                                <div class="h3 mb-0 font-weight-bold">{{ $stats['maintenanceTerjadwal'] }}</div>
+                            </div>
+                            <div class="col-auto"><i class="fas fa-wrench fa-3x"></i></div>
+                        </div>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+    </div>
+    
+    <hr>
+    
+    {{-- C. VISUALISASI GRAFIK (3 Charts) --}}
+    <div class="row mb-4">
+        
+        {{-- F. GRAFIK BARU: KOMPLAIN SLA BREAKDOWN --}}
+        <div class="col-xl-4 col-lg-4 mb-4">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Komplain Berdasarkan Level SLA</h6>
+                </div>
+                <div class="card-body">
+                    <div class="chart-pie pt-4 pb-2">
+                        <canvas id="komplainSLAChart"></canvas>
+                    </div>
+                    <div class="mt-4 text-center small">
+                        <span class="mr-2"><i class="fas fa-circle text-danger"></i> Major (SLA 3 Hari)</span>
+                        <span class="mr-2"><i class="fas fa-circle text-warning"></i> Minor (SLA 1 Hari)</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {{-- B. GRAFIK ASET BERDASARKAN KONDISI --}}
+        <div class="col-xl-4 col-lg-4 mb-4">
             <div class="card shadow">
                 <div class="card-header py-3">
                     <h6 class="m-0 font-weight-bold text-primary">Distribusi Aset berdasarkan Kondisi</h6>
@@ -125,7 +177,7 @@
         </div>
 
         {{-- E. GRAFIK STATUS MAINTENANCE --}}
-        <div class="col-xl-6 col-lg-6 mb-4">
+        <div class="col-xl-4 col-lg-4 mb-4">
             <div class="card shadow">
                 <div class="card-header py-3">
                     <h6 class="m-0 font-weight-bold text-primary">Status Pelaksanaan Maintenance</h6>
@@ -141,7 +193,7 @@
     
     <hr>
     
-    {{-- C & D. RIWAYAT (USER ACTIVITY & PENGAJUAN TREN) --}}
+    {{-- D & G. RIWAYAT & TREN --}}
     <div class="row">
         
         {{-- C. RIWAYAT ONLINE USER --}}
@@ -158,8 +210,11 @@
                                     <i class="fas fa-user-circle mr-2"></i> 
                                     <strong>{{ $user->username }}</strong> ({{ $user->role }})
                                 </div>
-                                <span class="badge {{ $user->status === 'aktif' ? 'bg-success' : 'bg-secondary' }} status-{{ $user->status }}">
-                                    @if ($user->last_seen >= Carbon\Carbon::now()->subMinutes(2))
+                                <span class="badge 
+                                    @if ($user->last_seen && $user->last_seen >= Carbon\Carbon::now()->subMinutes(5)) bg-success 
+                                    @else bg-secondary 
+                                    @endif">
+                                    @if ($user->last_seen && $user->last_seen >= Carbon\Carbon::now()->subMinutes(5))
                                         Online
                                     @else
                                         Terakhir dilihat: {{ $user->last_seen ? $user->last_seen->diffForHumans() : 'Belum pernah login' }}
@@ -178,7 +233,7 @@
         <div class="col-xl-6 col-lg-6 mb-4">
             <div class="card shadow">
                 <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">Tren Pengajuan Peminjaman (6 Bulan Terakhir)</h6>
+                    <h6 class="m-0 font-weight-bold text-primary">Tren  Peminjaman (6 Bulan Terakhir)</h6>
                 </div>
                 <div class="card-body">
                     <div class="chart-area pt-4 pb-2">
@@ -197,8 +252,9 @@
     const asetKondisiData = @json($asetKondisi->pluck('total', 'kondisi'));
     const maintenanceStatusData = @json($maintenanceStatus->pluck('total', 'status'));
     const pengajuanTrenData = @json($pengajuanTren);
+    const komplainSLAStatusData = @json($komplainSLAStatus->pluck('total', 'level_teknisi'));
     
-    // Warna untuk Grafik
+    // Warna untuk Grafik (Disesuaikan untuk Major/Minor)
     const colors = {
         'Baik': 'rgb(40, 167, 69)', // Success/Green
         'Rusak': 'rgb(220, 53, 69)', // Danger/Red
@@ -207,6 +263,11 @@
         'Proses': 'rgb(0, 123, 255)',
         'Selesai': 'rgb(40, 167, 69)',
         'Gagal': 'rgb(108, 117, 125)',
+        
+        // Warna Komplain SLA
+        'major': 'rgb(220, 53, 69)', // Merah (Urgent/3 Hari)
+        'minor': 'rgb(255, 193, 7)', // Kuning (Warning/1 Hari)
+        
         'default': 'rgb(0, 123, 255)' 
     };
 
@@ -215,7 +276,7 @@
     const formatBulan = (monthNum, yearNum) => `${monthNames[monthNum - 1]}-${yearNum}`;
 
 
-    // --- 1. GRAFIK KONDISI ASET ---
+    // --- 1. GRAFIK KONDISI ASET (PIE) ---
     new Chart(document.getElementById('asetKondisiChart'), {
         type: 'pie',
         data: {
@@ -229,7 +290,7 @@
         },
     });
 
-    // --- 2. GRAFIK STATUS MAINTENANCE ---
+    // --- 2. GRAFIK STATUS MAINTENANCE (BAR) ---
     new Chart(document.getElementById('maintenanceStatusChart'), {
         type: 'bar',
         data: {
@@ -238,7 +299,6 @@
                 label: "Jumlah Maintenance",
                 data: Object.values(maintenanceStatusData),
                 backgroundColor: Object.keys(maintenanceStatusData).map(key => colors[key] || colors['default']),
-                hoverBackgroundColor: Object.keys(maintenanceStatusData).map(key => colors[key] || colors['default']),
                 borderColor: '#4e73df',
             }],
         },
@@ -246,16 +306,29 @@
             legend: { display: false },
         }
     });
+    
+    // --- 3. GRAFIK KOMPLAIN SLA BREAKDOWN (PIE/DONUT) ---
+    new Chart(document.getElementById('komplainSLAChart'), {
+        type: 'doughnut', // Menggunakan Doughnut agar terlihat beda dari Aset
+        data: {
+            labels: Object.keys(komplainSLAStatusData).map(key => key.charAt(0).toUpperCase() + key.slice(1)), // Capitalize
+            datasets: [{
+                data: Object.values(komplainSLAStatusData),
+                backgroundColor: Object.keys(komplainSLAStatusData).map(key => colors[key] || colors['default']),
+                hoverBackgroundColor: Object.keys(komplainSLAStatusData).map(key => colors[key] || colors['default']),
+                hoverBorderColor: "rgba(234, 236, 244, 1)",
+            }],
+        },
+    });
 
-    // --- 3. GRAFIK TREN PENGAJUAN ---
-    // Ubah format data tren
+    // --- 4. GRAFIK TREN PENGAJUAN (LINE) ---
     const trenLabels = pengajuanTrenData.map(item => formatBulan(item.bulan, item.tahun));
     const trenTotals = pengajuanTrenData.map(item => item.total);
 
     new Chart(document.getElementById('pengajuanTrenChart'), {
         type: 'line',
         data: {
-            labels: trenLabels.reverse(), // Reverse agar bulan terbaru ada di kanan
+            labels: trenLabels.reverse(), 
             datasets: [{
                 label: "Total Pengajuan",
                 data: trenTotals.reverse(), 

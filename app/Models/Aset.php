@@ -3,6 +3,11 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Carbon\Carbon; // <--- KOREKSI: Tambahkan ini untuk menggunakan Carbon
+use App\Models\LaporanInventaris; // Tambahkan import
+use App\Models\LaporanInventarisDetail; // Tambahkan import (digunakan di cekPemutihan)
+use App\Models\Maintenance; // Tambahkan import
+use App\Models\PeminjamanRuangan; // Tambahkan import
 
 class Aset extends Model
 {
@@ -20,7 +25,8 @@ class Aset extends Model
         'kondisi',
         'status',
         'tanggal_input',
-        'laporan_id'
+        'laporan_id',
+        'qr_code'
     ];
 
     /**
@@ -29,7 +35,7 @@ class Aset extends Model
      */
     public function cekPemutihan()
     {
-        // Jika kondisi != rusak → tidak perlu pemutihan
+        // ... (Logika cekPemutihan tidak diubah) ...
         if (strtolower($this->kondisi) !== 'rusak') {
             return [
                 'perlu_pemutihan' => false,
@@ -67,10 +73,22 @@ class Aset extends Model
     {
         return $this->belongsTo(LaporanInventaris::class, 'laporan_id');
     }
+    
     public function maintenance_terakhir()
-{
-    return $this->hasOne(Maintenance::class, 'aset_id', 'aset_id')
-                ->latest('tanggal_dijadwalkan');
-}
-
+    {
+        return $this->hasOne(Maintenance::class, 'aset_id', 'aset_id')
+                    ->latest('tanggal_dijadwalkan');
+    }
+    
+    /**
+     * Relasi untuk mendapatkan peminjaman ruangan yang aktif hari ini
+     */
+    public function peminjamanRuanganAktif()
+    {
+        $today = Carbon::today(); // <--- Carbon::today() sekarang aman karena sudah di-import
+        return $this->hasMany(PeminjamanRuangan::class, 'nama_ruangan', 'nama')
+                    ->whereIn('status', ['disetujui', 'dipinjam'])
+                    ->whereDate('jam_pinjam', '<=', $today)
+                    ->whereDate('jam_kembali', '>=', $today);
+    }
 }

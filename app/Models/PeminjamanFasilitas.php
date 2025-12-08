@@ -15,7 +15,8 @@ class PeminjamanFasilitas extends Model
         'nama_peminjam',
         'jam_pinjam',
         'jam_kembali',
-        'status'
+        'status',
+        'bukti_foto'
     ];
 
     public function detail()

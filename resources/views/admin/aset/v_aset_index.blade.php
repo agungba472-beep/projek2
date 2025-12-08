@@ -26,6 +26,7 @@
                         <th>Kartu Kontrol</th>
 
                         <th>Aksi</th>
+                        <th>QR</th>
                     </tr>
                 </thead>
 
@@ -69,6 +70,14 @@
                                 </button>
                             </form>
                         </td>
+                        <td>
+  <a href="{{ route('qr.download', $row->aset_id) }}" class="btn btn-sm btn-primary">
+    Download QR
+</a>
+
+
+</td>
+
                     </tr>
                     @endforeach
                 </tbody>

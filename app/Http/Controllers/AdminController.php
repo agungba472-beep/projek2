@@ -1,80 +1,77 @@
 <?php
-// app/Http/Controllers/AdminController.php
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use App\Models\User;
-use App\Models\Aset;
-use App\Models\Maintenance;
-use App\Models\PeminjamanRuangan;
+use App\Http\Controllers\Controller;
 use App\Models\PeminjamanFasilitas;
+use App\Models\PeminjamanRuangan;
+use Illuminate\Http\Request;
+use App\Models\Aset;
+use App\Models\User;
+use App\Models\Maintenance;
+use App\Models\Komplain; // Import Model Komplain
 use Carbon\Carbon;
-use Illuminate\Support\Facades\DB; // Digunakan untuk agregasi data
+use Illuminate\Support\Facades\DB;
 
 class AdminController extends Controller
 {
     public function index()
     {
-        // 1. DATA RINGKASAN (CARD STATS)
-        $totalAset = Aset::count();
-        $totalPengguna = User::count();
-        $pengajuanMenunggu = PeminjamanRuangan::where('status', 'menunggu')->count() +
-                             PeminjamanFasilitas::where('status', 'menunggu')->count();
-        $maintenanceTerjadwal = Maintenance::where('status', 'Terjadwal')->count();
-
-        // 2. DATA GRAFIK ASET BERDASARKAN KONDISI
+        // === 1. STATISTIK UTAMA ===
+        $stats = [
+            'totalAset' => Aset::count(),
+            'totalPengguna' => User::count(),
+            'pengajuanMenunggu' => PeminjamanFasilitas::where('status', 'menunggu')->count(),
+            'maintenanceTerjadwal' => Maintenance::where('status', 'Terjadwal')->count(),
+            
+            // STATS BARU: Komplain
+            'totalKomplain' => Komplain::count(),
+            'komplainAktif' => Komplain::whereIn('status', ['baru', 'diproses'])->count(),
+        ];
+        
+        // === 2. DATA UNTUK GRAFIK ===
+        
+        // A. Grafik Aset Kondisi
         $asetKondisi = Aset::select('kondisi', DB::raw('count(*) as total'))
                             ->groupBy('kondisi')
                             ->get();
 
-        // 3. DATA GRAFIK MAINTENANCE STATUS
+        // E. Grafik Status Maintenance
         $maintenanceStatus = Maintenance::select('status', DB::raw('count(*) as total'))
                                         ->groupBy('status')
                                         ->get();
 
-        // 4. RIWAYAT ONLINE USER (User Activity)
-        // Kriteria 'Online': last_seen dalam 2 menit terakhir dan status bukan 'nonaktif'
-        $usersOnline = User::where('last_seen', '>=', Carbon::now()->subMinutes(2))
-                            ->where('status', '!=', 'nonaktif')
-                            ->orderBy('last_seen', 'DESC')
-                            ->get();
-        
-        // Riwayat user terakhir yang aktif (terlepas dari status online/offline)
-        $riwayatUsers = User::orderBy('last_seen', 'DESC')
-                             ->limit(5)
-                             ->get();
-
-
-        // 5. RIWAYAT PENGAJUAN (Grafik Tren Bulanan)
+        // D. Grafik Tren Pengajuan (6 bulan terakhir)
         $pengajuanTren = PeminjamanRuangan::select(
-                                DB::raw('MONTH(jam_pinjam) as bulan'),
-                                DB::raw('YEAR(jam_pinjam) as tahun'),
-                                DB::raw('count(*) as total')
-                            )
-                            ->groupBy('tahun', 'bulan')
-                            ->orderBy('tahun', 'DESC')
-                            ->orderBy('bulan', 'DESC')
-                            ->limit(6)
-                            ->get();
+                                    DB::raw('MONTH(created_at) as bulan'),
+                                    DB::raw('YEAR(created_at) as tahun'),
+                                    DB::raw('count(*) as total')
+                                )
+                                ->where('created_at', '>=', Carbon::now()->subMonths(6))
+                                ->groupBy('tahun', 'bulan')
+                                ->orderBy('tahun', 'asc')
+                                ->orderBy('bulan', 'asc')
+                                ->get();
 
+        // F. GRAFIK BARU: Komplain Berdasarkan Level SLA (Major vs Minor)
+        $komplainSLAStatus = Komplain::select('level_teknisi', DB::raw('count(*) as total'))
+                                        ->whereNotNull('level_teknisi')
+                                        ->groupBy('level_teknisi')
+                                        ->get();
 
-        $data = [
-            // Ringkasan
-            'stats' => compact('totalAset', 'totalPengguna', 'pengajuanMenunggu', 'maintenanceTerjadwal'),
-            
-            // Grafik
-            'asetKondisi' => $asetKondisi,
-            'maintenanceStatus' => $maintenanceStatus,
-            
-            // Riwayat
-            'usersOnline' => $usersOnline,
-            'riwayatUsers' => $riwayatUsers,
-            
-            // Tren
-            'pengajuanTren' => $pengajuanTren,
-        ];
+        // C. Riwayat Pengguna Aktif
+        $riwayatUsers = User::orderBy('last_seen', 'desc')->take(5)->get();
+        // Anda harus memastikan kolom last_seen terupdate saat login/activity
+        $usersOnline = User::where('last_seen', '>=', Carbon::now()->subMinutes(5))->get();
 
-        return view('admin.v_admin', $data);
+        return view('admin.v_admin', compact(
+            'stats',
+            'asetKondisi',
+            'maintenanceStatus',
+            'pengajuanTren',
+            'komplainSLAStatus', // Data baru
+            'riwayatUsers',
+            'usersOnline'
+        ));
     }
 }

@@ -5,13 +5,18 @@ namespace App\Http\Controllers;
 use App\Models\Aset;
 use Illuminate\Http\Request;
 
+use Endroid\QrCode\QrCode;
+use Endroid\QrCode\Writer\PngWriter;
+
+use Illuminate\Support\Facades\Storage;
+
 class AsetController extends Controller
 {
-   public function index()
-{
-    $aset = Aset::orderBy('aset_id', 'DESC')->get();
-    return view('admin.aset.v_aset_index', compact('aset'));
-}
+    public function index()
+    {
+        $aset = Aset::orderBy('aset_id', 'DESC')->get();
+        return view('admin.aset.v_aset_index', compact('aset'));
+    }
 
     public function create()
     {
@@ -29,7 +34,8 @@ class AsetController extends Controller
             'status' => 'required'
         ]);
 
-        Aset::create([
+        // Simpan data aset
+        $aset = Aset::create([
             'nama' => $request->nama,
             'jenis' => $request->jenis,
             'lokasi' => $request->lokasi,
@@ -39,42 +45,85 @@ class AsetController extends Controller
             'tanggal_peroleh' => $request->tanggal_peroleh,
             'umur_maksimal' => $request->umur_maksimal,
             'tanggal_input' => now(),
+        ]);
 
+        // ==================================================
+        //      GENERATE QR CODE DENGAN INFORMASI LENGKAP
+        // ==================================================
+
+        $dataQR = 
+            "ID: " . $aset->aset_id . "\n" .
+            "Nama: " . $aset->nama . "\n" .
+            "Jenis: " . ($aset->jenis ?? '-') . "\n" .
+            "Lokasi: " . ($aset->lokasi ?? '-') . "\n" .
+            "Kondisi: " . $aset->kondisi . "\n" .
+            "Status: " . $aset->status;
+
+        $qr = QrCode::create($dataQR)
+            ->setSize(300)
+            ->setMargin(10);
+
+        $writer = new PngWriter();
+        $result = $writer->write($qr);
+
+        $qrName = "qr_aset_" . $aset->aset_id . ".png";
+
+        // Simpan QR ke storage/public/qrcode
+        Storage::disk('public')->put("qrcode/" . $qrName, $result->getString());
+
+        // Simpan nama file QR
+        $aset->update([
+            'qr_code' => $qrName
         ]);
 
         return redirect()
             ->route('aset.index')
-            ->with('success', 'Aset berhasil ditambahkan!');
+            ->with('success', 'Aset berhasil ditambahkan dan QR berisi data lengkap!');
     }
 
     public function edit($id)
-{
-    $aset = Aset::findOrFail($id);
-    return view('admin.aset.v_update_aset', compact('aset'));
-}
+    {
+        $aset = Aset::findOrFail($id);
+        return view('admin.aset.v_update_aset', compact('aset'));
+    }
 
-public function update(Request $request, $id)
-{
-    $validated = $request->validate([
-        'nama' => 'required|string|max:100',
-        'jenis' => 'nullable|string|max:50',
-        'lokasi' => 'nullable|string|max:100',
-        'nilai' => 'nullable|numeric',
-        'kondisi' => 'required',
-        'status' => 'required',
-        'tanggal_peroleh' => 'nullable|date',
-        'umur_maksimal' => 'nullable|numeric',
-    ]);
+    public function update(Request $request, $id)
+    {
+        $validated = $request->validate([
+            'nama' => 'required|string|max:100',
+            'jenis' => 'nullable|string|max:50',
+            'lokasi' => 'nullable|string|max:100',
+            'nilai' => 'nullable|numeric',
+            'kondisi' => 'required',
+            'status' => 'required',
+            'tanggal_peroleh' => 'nullable|date',
+            'umur_maksimal' => 'nullable|numeric',
+        ]);
 
-    Aset::where('aset_id', $id)->update($validated);
+        Aset::where('aset_id', $id)->update($validated);
 
-    return redirect()->route('aset.index')->with('success', 'Aset berhasil diperbarui!');
-}
-public function destroy($id)
-{
-    Aset::where('aset_id', $id)->delete();
+        return redirect()->route('aset.index')->with('success', 'Aset berhasil diperbarui!');
+    }
 
-    return redirect()->route('aset.index')->with('success', 'Aset berhasil dihapus');
-}
+    public function destroy($id)
+    {
+        Aset::where('aset_id', $id)->delete();
+        return redirect()->route('aset.index')->with('success', 'Aset berhasil dihapus');
+    }
 
+    // ============================
+    //  DOWNLOAD QR CODE
+    // ============================
+    public function downloadQR($id)
+    {
+        $aset = Aset::findOrFail($id);
+
+        $file = storage_path("app/public/qrcode/" . $aset->qr_code);
+
+        if (!file_exists($file)) {
+            return back()->with('error', 'QR Code tidak ditemukan.');
+        }
+
+        return response()->download($file);
+    }
 }
