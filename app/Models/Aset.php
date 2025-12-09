@@ -18,8 +18,9 @@ class Aset extends Model
     protected $fillable = [
         'nama',
         'jenis',
-        'lokasi',
+        'ruangan_id',
         'tanggal_peroleh',
+        'tahun_pengadaan',
         'umur_maksimal',
         'nilai',
         'kondisi',
@@ -68,7 +69,10 @@ class Aset extends Model
             'data_laporan'    => null,
         ];
     }
-
+    public function ruangan() 
+    {
+        return $this->belongsTo(Ruangan::class, 'ruangan_id'); 
+    }
     public function laporan()
     {
         return $this->belongsTo(LaporanInventaris::class, 'laporan_id');
@@ -85,7 +89,7 @@ class Aset extends Model
      */
     public function peminjamanRuanganAktif()
     {
-        $today = Carbon::today(); // <--- Carbon::today() sekarang aman karena sudah di-import
+        $today = Carbon::today();
         return $this->hasMany(PeminjamanRuangan::class, 'nama_ruangan', 'nama')
                     ->whereIn('status', ['disetujui', 'dipinjam'])
                     ->whereDate('jam_pinjam', '<=', $today)

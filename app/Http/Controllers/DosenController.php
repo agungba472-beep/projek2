@@ -11,41 +11,70 @@ use App\Models\Aset; // Model untuk mencari Ruangan Kelas
 use App\Models\Komplain; // Model Komplain
 use Carbon\Carbon; 
 use Illuminate\Support\Facades\DB;
+use App\Models\Ruangan; // Model Ruangan
+use App\Models\Dosen;   // Model Dosen
 
 class DosenController extends Controller
 {
     public function index()
-    {
-        $user_id = Auth::id();
-        
-        // Definisikan rentang waktu untuk jadwal (Kemarin hingga Besok)
-        $yesterday = Carbon::yesterday();
-        $tomorrow = Carbon::tomorrow();
+{
+    $user = Auth::user();
+    // Dosen ID hanya tersedia jika user sudah melengkapi profil (ada entry di tabel dosen)
+    $dosen = Dosen::where('user_id', $user->user_id)->first();
+    $dosenId = $dosen ? $dosen->dosen_id : null;
+    
+    // 1. Ruangan yang diampu oleh Dosen ini
+    $ruanganDiampu = Ruangan::where('kepala_lab_id', $dosenId)->pluck('ruangan_id');
+    
+    // 2. Aset Rusak di Ruangan yang dia ampu
+    $asetRusakDiampu = Aset::whereIn('ruangan_id', $ruanganDiampu)
+                           ->where('kondisi', 'Rusak')
+                           ->count();
+    
+    // 3. Total Komplain yang sedang diproses (contoh)
+    $komplainProses = Komplain::where('status', 'menunggu')->count();
 
-        // 1. STATISTIK PEMINJAMAN DAN KOMPLAIN
-        $totalRuangan = PeminjamanRuangan::where('user_id', $user_id)->count();
-        $totalFasilitas = PeminjamanFasilitas::where('user_id', $user_id)->count();
-        
-        $stats = [
-            'totalPengajuan' => $totalRuangan + $totalFasilitas,
-            'aktif'          => PeminjamanRuangan::where('user_id', $user_id)->whereIn('status', ['disetujui', 'dipinjam'])->count() +
-                                PeminjamanFasilitas::where('user_id', $user_id)->whereIn('status', ['disetujui', 'dipinjam'])->count(),
-            'fasilitasAktif' => PeminjamanFasilitas::where('user_id', $user_id)->whereIn('status', ['disetujui', 'dipinjam'])->count(),
-            'totalKomplain'  => Komplain::where('user_id', $user_id)->count(),
-            'komplainProses' => Komplain::where('user_id', $user_id)->whereIn('status', ['baru', 'diproses'])->count(),
-        ];
+    $stats = [
+        'asetRusakDiampu' => $asetRusakDiampu,
+        'jumlahRuanganDiampu' => $ruanganDiampu->count(),
+        'totalKomplainMenunggu' => $komplainProses,
+    ];
+    
+    return view('dosen.v_dosen', compact('stats'));
+}
+    public function asetIndex()
+{
+    // 1. Dapatkan user ID yang sedang login
+    $user = Auth::user();
 
-        // 2. RUANGAN KELAS YANG SEDANG SIBUK (KEMARIN, HARI INI, BESOK)
+    // 2. Dapatkan ID Dosen dari tabel 'dosen'
+    // Perlu dimuat relasi Dosen karena FK Ruangan menunjuk ke Dosen ID, bukan User ID
+    $dosen = Dosen::where('user_id', $user->user_id)->first();
+    $dosenId = $dosen ? $dosen->dosen_id : null;
+
+    // Inisialisasi query Aset dengan eager loading
+    $query = Aset::with(['ruangan.kepalaLab'])
+                  ->orderBy('aset_id', 'DESC');
+
+    if ($dosenId) {
+        // 3. Dapatkan ID ruangan yang diampu oleh Dosen ini
+        $ruanganDiampuIds = Ruangan::where('kepala_lab_id', $dosenId)->pluck('ruangan_id');
+
+        // 4. Filter Aset: Hanya tampilkan aset yang berada di ruangan yang diampu
+        $query->whereIn('ruangan_id', $ruanganDiampuIds);
         
-        // Ambil semua data peminjaman yang statusnya aktif dan tanggalnya masuk dalam rentang Kemarin s/d Besok.
-        $ruanganSibuk = PeminjamanRuangan::whereIn('status', ['disetujui', 'dipinjam'])
-                                        ->whereDate('jam_kembali', '>=', $yesterday) // Belum selesai sebelum kemarin
-                                        ->whereDate('jam_pinjam', '<=', $tomorrow) // Mulai sebelum besok
-                                        ->orderBy('jam_pinjam', 'asc')
-                                        ->get();
-                               
-        // Kita tidak perlu Aset::where('jenis', 'Ruangan Kelas') lagi karena kita fokus pada data peminjaman.
-                               
-        return view('dosen.v_dosen', compact('stats', 'ruanganSibuk')); // Ganti nama variabel menjadi ruanganSibuk
+        // 5. Dukungan Filter Kondisi (jika ada tautan dari dashboard)
+        if (request()->has('kondisi') && request('kondisi') != '') {
+            $query->where('kondisi', request('kondisi'));
+        }
+        
+    } else {
+        // Jika Dosen belum melengkapi profil (belum ada dosenId), tampilkan aset kosong.
+        $query->where('aset_id', null); 
     }
+
+    $aset = $query->get();
+
+    return view('dosen.v_aset_index', compact('aset'));
+}
 }

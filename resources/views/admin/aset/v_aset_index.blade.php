@@ -1,88 +1,79 @@
+// File: resources/views/admin/aset/v_aset_index.blade.php
+
 @extends('layouts.v_template')
 
 @section('content')
-<div class="container mt-4">
-    <div class="card shadow">
+<div class="container-fluid">
+    <h3>Kelola Aset Tetap</h3>
 
-        <div class="card-header d-flex justify-content-between">
-            <h4>Data Aset</h4>
-            <a href="{{ route('aset.tambah') }}" class="btn btn-primary">Add Data</a>
+    @if(session('success'))
+        <div class="alert alert-success">{{ session('success') }}</div>
+    @endif
+    @if(session('error'))
+        <div class="alert alert-danger">{{ session('error') }}</div>
+    @endif
+
+    <div class="card shadow mb-4">
+        <div class="card-header py-3 d-flex justify-content-between align-items-center">
+            <h6 class="m-0 font-weight-bold text-primary">Daftar Aset</h6>
+            <a href="{{ route('aset.tambah') }}" class="btn btn-primary btn-sm">
+                <i class="fas fa-plus"></i> Tambah Aset
+            </a>
         </div>
-
+        
         <div class="card-body">
-            <table class="table table-bordered table-striped" id="asetTable">
-
-                <thead class="table-light">
-                    <tr>
-                        <th>No</th>
-                        <th>Nama</th>
-                        <th>Jenis</th>
-                        <th>Lokasi</th>
-                        <th>Kondisi</th>
-                        <th>Status</th>
-
-                        {{-- Kolom baru --}}
-                        <th>Maintenance Terakhir</th>
-                        <th>Kartu Kontrol</th>
-
-                        <th>Aksi</th>
-                        <th>QR</th>
-                    </tr>
-                </thead>
-
-                <tbody>
-                    @foreach($aset as $row)
-                    <tr>
-                        <td>{{ $loop->iteration }}</td>
-                        <td>{{ $row->nama }}</td>
-                        <td>{{ $row->jenis }}</td>
-                        <td>{{ $row->lokasi }}</td>
-                        <td>{{ $row->kondisi }}</td>
-                        <td>{{ $row->status }}</td>
-
-                        {{-- maintenance terakhir --}}
-                        <td>
-                            @if($row->maintenance_terakhir)
-                                {{ \Carbon\Carbon::parse($row->maintenance_terakhir->tanggal_dijadwalkan)->format('d M Y') }}
-                            @else
-                                <span class="text-muted">Belum ada</span>
-                            @endif
-                        </td>
-
-                        {{-- tombol ke maintenance --}}
-                        <td>
-                            <a href="{{ route('maintenance.listAset', $row->aset_id) }}" 
-                               class="btn btn-info btn-sm">
-                                Lihat
-                            </a>
-                        </td>
-
-                        <td>
-                            <a href="{{ route('aset.edit', $row->aset_id) }}" class="btn btn-warning btn-sm">
-                                Edit
-                            </a>
-
-                            <form action="{{ route('aset.delete', $row->aset_id) }}" method="POST" class="d-inline">
-                                @csrf
-                                @method('DELETE')
-                                <button class="btn btn-danger btn-sm" onclick="return confirm('Yakin dihapus?')">
-                                    Delete
-                                </button>
-                            </form>
-                        </td>
-                        <td>
-  <a href="{{ route('qr.download', $row->aset_id) }}" class="btn btn-sm btn-primary">
-    Download QR
-</a>
-
-
-</td>
-
-                    </tr>
-                    @endforeach
-                </tbody>
-
-            </table>
+            <div class="table-responsive">
+                <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                    <thead>
+                        <tr>
+                            <th>No</th>
+                            <th>Nama Aset</th>
+                            <th>Jenis</th>
+                            <th>Ruangan</th> <th>Tahun Pengadaan</th> <th>Tanggal Peroleh</th>
+                            <th>Umur Maksimal</th>
+                            <th>Nilai</th>
+                            <th>Kondisi</th>
+                            <th>Status</th>
+                            <th>QR Code</th>
+                            <th>Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($aset as $item)
+                        <tr>
+                            <td>{{ $loop->iteration }}</td>
+                            <td>{{ $item->nama }}</td>
+                            <td>{{ $item->jenis ?? '-' }}</td>
+                            <td>{{ $item->ruangan->nama_ruangan ?? '-' }}</td> 
+                            <td>{{ $item->tahun_pengadaan ?? '-' }}</td> 
+                            <td>{{ $item->tanggal_peroleh ?? '-' }}</td>
+                            <td>{{ $item->umur_maksimal ?? '-' }}</td>
+                            <td>{{ number_format($item->nilai, 2) ?? '-' }}</td>
+                            <td>{{ $item->kondisi }}</td>
+                            <td>{{ $item->status }}</td>
+                            <td>
+                                @if($item->qr_code)
+                                    <a href="{{ route('qr.download', $item->aset_id) }}" class="btn btn-sm btn-info" target="_blank">
+                                        Download QR
+                                    </a>
+                                @else
+                                    -
+                                @endif
+                            </td>
+                            <td>
+                                <a href="{{ route('aset.edit', $item->aset_id) }}" class="btn btn-warning btn-sm">Edit</a>
+                                <a href="{{ route('maintenance.listAset', $item->aset_id) }}" class="btn btn-info btn-sm">MT</a>
+                                <form action="{{ route('aset.delete', $item->aset_id) }}" method="POST" class="d-inline" onsubmit="return confirm('Yakin ingin menghapus aset ini?');">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="btn btn-danger btn-sm">Hapus</button>
+                                </form>
+                            </td>
+                        </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 </div>

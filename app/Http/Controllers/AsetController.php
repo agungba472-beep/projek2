@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Aset;
+use App\Models\Ruangan; // Pastikan ini di-import
 use Illuminate\Http\Request;
 
 use Endroid\QrCode\QrCode;
@@ -14,13 +15,17 @@ class AsetController extends Controller
 {
     public function index()
     {
-        $aset = Aset::orderBy('aset_id', 'DESC')->get();
+        // KOREKSI: Tambahkan eager loading relasi ruangan
+        $aset = Aset::with('ruangan')->orderBy('aset_id', 'DESC')->get();
         return view('admin.aset.v_aset_index', compact('aset'));
     }
 
     public function create()
     {
-        return view('admin.aset.v_tambah_aset');
+        // Sudah benar: Ambil daftar ruangan yang sudah dibuat Admin
+        $ruangan = Ruangan::all(); 
+        
+        return view('admin.aset.v_tambah_aset', compact('ruangan'));
     }
 
     public function store(Request $request)
@@ -28,34 +33,42 @@ class AsetController extends Controller
         $request->validate([
             'nama' => 'required',
             'jenis' => 'nullable',
-            'lokasi' => 'nullable',
+            'ruangan_id' => 'required|exists:ruangan,ruangan_id',
             'nilai' => 'nullable|numeric',
+            'tahun_pengadaan' => 'nullable|numeric|digits:4|max:' . date('Y'),
             'kondisi' => 'required',
-            'status' => 'required'
+            'status' => 'required',
+            'tanggal_peroleh' => 'nullable|date',
+            'umur_maksimal' => 'nullable|numeric',
         ]);
 
         // Simpan data aset
         $aset = Aset::create([
             'nama' => $request->nama,
             'jenis' => $request->jenis,
-            'lokasi' => $request->lokasi,
+            'ruangan_id' => $request->ruangan_id,
             'nilai' => $request->nilai,
             'kondisi' => $request->kondisi,
             'status' => $request->status,
             'tanggal_peroleh' => $request->tanggal_peroleh,
             'umur_maksimal' => $request->umur_maksimal,
+            'tahun_pengadaan' => $request->tahun_pengadaan,
             'tanggal_input' => now(),
         ]);
+        
+        // Agar relasi ruangan tersedia saat generate QR setelah create()
+        $aset->load('ruangan'); 
 
         // ==================================================
-        //      GENERATE QR CODE DENGAN INFORMASI LENGKAP
+        //      GENERATE QR CODE DENGAN INFORMASI LENGKAP
         // ==================================================
 
         $dataQR = 
             "ID: " . $aset->aset_id . "\n" .
             "Nama: " . $aset->nama . "\n" .
             "Jenis: " . ($aset->jenis ?? '-') . "\n" .
-            "Lokasi: " . ($aset->lokasi ?? '-') . "\n" .
+            // Mengakses relasi ruangan yang sudah diload
+            "Lokasi: " . ($aset->ruangan->nama_ruangan ?? '-') . "\n" .
             "Kondisi: " . $aset->kondisi . "\n" .
             "Status: " . $aset->status;
 
@@ -83,8 +96,11 @@ class AsetController extends Controller
 
     public function edit($id)
     {
+        // KOREKSI: Tambahkan pengambilan data ruangan
         $aset = Aset::findOrFail($id);
-        return view('admin.aset.v_update_aset', compact('aset'));
+        $ruangan = Ruangan::all(); // <--- BARU
+        
+        return view('admin.aset.v_update_aset', compact('aset', 'ruangan')); // <--- BARU
     }
 
     public function update(Request $request, $id)
@@ -92,11 +108,12 @@ class AsetController extends Controller
         $validated = $request->validate([
             'nama' => 'required|string|max:100',
             'jenis' => 'nullable|string|max:50',
-            'lokasi' => 'nullable|string|max:100',
+            'ruangan_id' => 'required|exists:ruangan,ruangan_id', // Sudah benar
             'nilai' => 'nullable|numeric',
             'kondisi' => 'required',
             'status' => 'required',
             'tanggal_peroleh' => 'nullable|date',
+            'tahun_pengadaan' => 'nullable|numeric|digits:4|max:' . date('Y'), // Sudah benar
             'umur_maksimal' => 'nullable|numeric',
         ]);
 
@@ -112,7 +129,7 @@ class AsetController extends Controller
     }
 
     // ============================
-    //  DOWNLOAD QR CODE
+    //  DOWNLOAD QR CODE
     // ============================
     public function downloadQR($id)
     {

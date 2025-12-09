@@ -11,12 +11,21 @@ use App\Models\User;
 use App\Models\Maintenance;
 use App\Models\Komplain; // Import Model Komplain
 use Carbon\Carbon;
+use App\Models\LaporanKerusakan;
+
 use Illuminate\Support\Facades\DB;
 
 class AdminController extends Controller
 {
     public function index()
     {
+        // Logika untuk menghitung aset rusak bulan ini (Revisi #1)
+        $startOfMonth = Carbon::now()->startOfMonth();
+        $endOfMonth = Carbon::now()->endOfMonth();
+
+        // Hitung jumlah laporan kerusakan (new reports) yang dibuat di bulan ini
+        $laporan_rusak_bulan_ini = LaporanKerusakan::whereBetween('tanggal_lapor', [$startOfMonth, $endOfMonth])
+                                                ->count();
         // === 1. STATISTIK UTAMA ===
         $stats = [
             'totalAset' => Aset::count(),
@@ -71,7 +80,8 @@ class AdminController extends Controller
             'pengajuanTren',
             'komplainSLAStatus', // Data baru
             'riwayatUsers',
-            'usersOnline'
+            'usersOnline',
+            'laporan_rusak_bulan_ini'
         ));
     }
 }

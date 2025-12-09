@@ -22,10 +22,24 @@
                     <input type="text" name="jenis" class="form-control">
                 </div>
 
-                <div class="mb-3">
-                    <label class="form-label">Lokasi</label>
-                    <input type="text" name="lokasi" class="form-control">
-                </div>
+                <div class="form-group">
+    <label for="ruangan_id">Ruangan / Lokasi</label>
+    <select name="ruangan_id" id="ruangan_id" class="form-control" required>
+        <option value="">-- Pilih Ruangan --</option>
+        @foreach($ruangan as $item)
+            <option value="{{ $item->ruangan_id }}" {{ old('ruangan_id') == $item->ruangan_id ? 'selected' : '' }}>
+                {{ $item->nama_ruangan }}
+                @if($item->kepalaLab)
+                    ({{ $item->kepalaLab->nama }})
+                @endif
+            </option>
+        @endforeach
+    </select>
+</div>
+<div class="form-group">
+    <label for="tahun_pengadaan">Tahun Pengadaan</label>
+    <input type="number" name="tahun_pengadaan" id="tahun_pengadaan" class="form-control" placeholder="Contoh: 2024" min="1900" max="{{ date('Y') }}" value="{{ old('tahun_pengadaan') }}">
+</div>
                 <div class="mb-3">
                 <label class="form-label">Tanggal Peroleh</label>
                 <input type="date" name="tanggal_peroleh" class="form-control">

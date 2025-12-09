@@ -8,7 +8,7 @@ use App\Models\LaporanInventaris;
 use App\Models\LaporanInventarisDetail;
 use App\Exports\LaporanInventarisExport;
 use Maatwebsite\Excel\Facades\Excel;
-
+use App\Models\Ruangan;
 class LaporanController extends Controller
 {
     /**
@@ -77,5 +77,27 @@ class LaporanController extends Controller
         ]);
 
         return back()->with('success', 'Pemutihan berhasil direkam.');
+    }
+    public function laporanAset(Request $request)
+    {
+        $ruanganList = Ruangan::orderBy('nama_ruangan')->get();
+        $kondisiList = ['Baik', 'Rusak', 'Hilang', 'Dipinjam'];
+        
+        $query = Aset::with(['ruangan.kepalaLab.user']) // Muat relasi ruangan dan kepala lab
+                      ->orderBy('aset_id', 'DESC');
+
+        // Filter berdasarkan Ruangan (Revisi #4)
+        if ($request->has('ruangan_id') && $request->ruangan_id != '') {
+            $query->where('ruangan_id', $request->ruangan_id);
+        }
+
+        // Filter berdasarkan Kondisi/Kerusakan (Revisi #3)
+        if ($request->has('kondisi') && $request->kondisi != '') {
+            $query->where('kondisi', $request->kondisi);
+        }
+
+        $aset = $query->get();
+
+        return view('admin.aset.v_laporan_aset_ruangan', compact('aset', 'ruanganList', 'kondisiList'));
     }
 }

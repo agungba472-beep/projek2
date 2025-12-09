@@ -9,13 +9,13 @@ class LaporanKerusakan extends Model
     protected $primaryKey = 'laporan_id';
 
     protected $fillable = [
-        'aset_id', 'deskripsi', 'status', 'tanggal_lapor'
+        'aset_id', 'deskripsi', 'status','tahun_kerusakan', 'tanggal_lapor'
     ];
 
     public $timestamps = false;
 
     public function aset()
     {
-        return $this->belongsTo(Aset::class, 'aset_id');
+        return $this->belongsTo(Aset::class, 'aset_id', 'aset_id');
     }
 }
